@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "@phosphor-icons/react";
 import { IMAGES } from "@/lib/images";
-import { GhostCta, IconButton, RESERVE_HREF } from "./ui";
+import { GhostCta, IconButton, RESERVE_HREF, SectionHead } from "./ui";
 import { Reveal } from "./reveal";
 
 const TOURS = [
@@ -39,119 +39,153 @@ const TOURS = [
   },
 ];
 
+/*
+ * Endless loop: the tour list is rendered three times in a row (previous,
+ * real, next). Scrolling stays within the middle copy; when the user crosses
+ * into a neighbouring copy, we silently jump back by exactly one list length
+ * (no animation), which is invisible because the copies are identical.
+ */
+const LOOP = 3;
+const SPAN = TOURS.length; // cards per copy
+
 export function Tours() {
   const track = useRef<HTMLUListElement>(null);
-  // Drives the arrow disabled states; also refreshed on resize.
-  const [edges, setEdges] = useState({ start: true, end: false });
 
-  const measure = useCallback(() => {
+  const loopJump = useCallback(() => {
     const el = track.current;
     if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    setEdges((prev) => {
-      const next = {
-        start: el.scrollLeft <= 2,
-        end: max <= 2 || el.scrollLeft >= max - 2,
-      };
-      return prev.start === next.start && prev.end === next.end ? prev : next;
-    });
+    const card = el.querySelector("li");
+    if (!card) return;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 20;
+    const copy = (card.clientWidth + gap) * SPAN;
+    // If we've drifted into a neighbour copy, silently jump back one copy
+    // length. Invisible, because all three copies are identical.
+    if (el.scrollLeft < copy * 0.5) {
+      el.scrollLeft += copy;
+    } else if (el.scrollLeft > copy * 2.5 - el.clientWidth) {
+      el.scrollLeft -= copy;
+    }
   }, []);
 
   useEffect(() => {
     const el = track.current;
     if (!el) return;
-    el.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", measure);
-    measure();
-    return () => {
-      el.removeEventListener("scroll", measure);
-      window.removeEventListener("resize", measure);
-    };
-  }, [measure]);
+    // Start centred on the middle copy.
+    const card = el.querySelector("li");
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 20;
+    if (card) {
+      el.scrollLeft = (card.clientWidth + gap) * SPAN;
+    }
+    el.addEventListener("scroll", loopJump, { passive: true });
+    return () => el.removeEventListener("scroll", loopJump);
+  }, [loopJump]);
 
   const nudge = (dir: 1 | -1) => {
     const el = track.current;
     if (!el) return;
+    // Exactly one card per nudge: card width + the flex gap.
     const card = el.querySelector("li");
-    const step = card ? card.clientWidth + 20 : el.clientWidth * 0.8;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 20;
+    const step = card ? card.clientWidth + gap : el.clientWidth * 0.8;
     el.scrollBy({ left: dir * step, behavior: "smooth" });
   };
 
   return (
-    <section id="tours" className="scroll-mt-20 overflow-hidden py-12 lg:py-16">
+    <section id="tours" className="scroll-mt-20 bg-paper-2 overflow-hidden py-12 lg:py-16">
       <div className="mx-auto max-w-container px-4 sm:px-6 lg:px-10">
-        <Reveal className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-          <h2 className="max-w-[18ch] font-display text-3xl leading-[1.1] tracking-tight text-ink sm:text-4xl lg:text-[2.6rem]">
-            Tours met gidsen die er zelf wonen.
-          </h2>
-          <div className="hidden gap-2 sm:flex">
-            <IconButton label="Vorige tours" onClick={() => nudge(-1)} disabled={edges.start}>
-              <ArrowLeft size={18} />
-            </IconButton>
-            <IconButton label="Volgende tours" onClick={() => nudge(1)} disabled={edges.end}>
-              <ArrowRight size={18} />
-            </IconButton>
-          </div>
+        <Reveal className="lg:col-span-12">
+          <SectionHead
+            kicker="04 — Tours"
+            title="Tours met gidsen die er zelf wonen."
+            intro="Van een stadswandeling tot meerdaagse reizen het binnenland in. Altijd met een gids uit de streek."
+          />
         </Reveal>
       </div>
 
-      {/* tabIndex/aria make the overflow region keyboard-scrollable with the
-          arrow keys, and screen readers announce it as a list to operate. */}
-      <ul
-        ref={track}
-        tabIndex={0}
-        aria-label="Tours, scrollbare lijst"
-        className="hide-scrollbar mt-8 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-pl-4 px-4 pb-1 focus-visible:outline-offset-[-4px] sm:scroll-pl-6 sm:px-6 lg:mt-10 lg:scroll-pl-10 lg:px-10"
-      >
-        {TOURS.map((t) => (
-          <li
-            key={t.name}
-            className="w-[78vw] shrink-0 snap-start sm:w-[44vw] lg:w-[24rem]"
-          >
-            <Link href={RESERVE_HREF} className="group flex h-full flex-col">
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
-                <Image
-                  src={t.img.src}
-                  alt={t.img.alt}
-                  fill
-                  sizes="(max-width: 640px) 78vw, (max-width: 1024px) 44vw, 24rem"
-                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                />
-              </div>
+      {/* One unified carousel block: exactly one tour centred, with small
+          peeks of the neighbours on both sides. Each nudge moves precisely
+          one card (card width + gap). */}
+      <div className="relative mt-8 lg:mt-10">
+        {/* tabIndex/aria make the overflow region keyboard-scrollable with the
+            arrow keys, and screen readers announce it as a list to operate. */}
+        <ul
+          ref={track}
+          tabIndex={0}
+          aria-label="Tours, scrollbare lijst"
+          className="hide-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto pb-1 focus-visible:outline-offset-[-4px] max-lg:px-[calc(50%-36vw)] sm:max-lg:px-[calc(50%-28vw)] lg:px-[calc(50%-18rem)]"
+        >
+          {Array.from({ length: LOOP }, (_, copyIndex) =>
+            TOURS.map((t, i) => (
+              <li
+                key={`${copyIndex}-${i}`}
+                aria-hidden={copyIndex !== 1 || undefined}
+                className="w-[72vw] shrink-0 snap-center sm:w-[56vw] lg:w-[36rem]"
+              >
+              <Link href={RESERVE_HREF} className="group flex h-full flex-col">
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
+                  <Image
+                    src={t.img.src}
+                    alt={t.img.alt}
+                    fill
+                    sizes="(max-width: 640px) 78vw, (max-width: 1024px) 44vw, 24rem"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                  />
+                </div>
 
-              <div className="mt-4 flex items-center gap-3">
-                <span className="rounded-full bg-aqua px-3 py-1 text-[0.76rem] font-medium text-aqua-ink">
-                  {t.meta}
-                </span>
-                <span className="font-display text-[0.95rem] text-orange">
-                  {t.from}
-                </span>
-              </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <span className="rounded-full bg-aqua px-3 py-1 text-[0.76rem] font-medium text-aqua-ink">
+                    {t.meta}
+                  </span>
+                  <span className="font-display text-[0.95rem] text-orange">
+                    {t.from}
+                  </span>
+                </div>
 
-              <div className="mt-2.5 flex items-start justify-between gap-3">
-                <h3 className="font-display text-lg leading-snug tracking-tight text-ink">
-                  {t.name}
-                </h3>
-                <ArrowUpRight
-                  size={18}
-                  weight="bold"
-                  className="mt-0.5 shrink-0 text-orange transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
-                />
-              </div>
-              <p className="mt-1.5 line-clamp-2 text-[0.9rem] leading-relaxed text-ink-soft">
-                {t.body}
-              </p>
-            </Link>
-          </li>
-        ))}
-      </ul>
+                <div className="mt-2.5 flex items-start justify-between gap-3">
+                  <h3 className="font-display text-xl leading-snug tracking-tight text-ink">
+                    {t.name}
+                  </h3>
+                  <ArrowUpRight
+                    size={18}
+                    weight="bold"
+                    className="mt-0.5 shrink-0 text-orange transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+                  />
+                </div>
+                <p className="mt-1.5 line-clamp-2 text-[0.9rem] leading-relaxed text-ink-soft">
+                  {t.body}
+                </p>
+              </Link>
+              </li>
+            )),
+          )}
+        </ul>
 
-      <div className="mx-auto mt-6 flex max-w-container flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
-        <p className="max-w-[52ch] text-[0.85rem] leading-relaxed text-ink-soft">
-          Een greep uit ruim 25 tours en workshops, van stadswandeling tot
-          meerdaagse jungletrek. Richtprijzen per persoon, definitief bij boeking
-          en afhankelijk van groepsgrootte en seizoen.
-        </p>
+        {/* Edge arrows — vertically centred on the image band, half overlapping
+            the track edge. Hidden on touch-first small screens (swipe there).
+            The loop is endless, so the arrows never disable. */}
+        <div className="pointer-events-none absolute inset-y-16 left-0 right-0 hidden items-center justify-between px-3 sm:flex lg:px-4">
+          <div className="pointer-events-auto">
+            <IconButton
+              label="Vorige tours"
+              onClick={() => nudge(-1)}
+              className="border-paper bg-paper/90 shadow-md backdrop-blur-sm hover:bg-paper"
+            >
+              <ArrowLeft size={18} />
+            </IconButton>
+          </div>
+          <div className="pointer-events-auto">
+            <IconButton
+              label="Volgende tours"
+              onClick={() => nudge(1)}
+              className="border-paper bg-paper/90 shadow-md backdrop-blur-sm hover:bg-paper"
+            >
+              <ArrowRight size={18} />
+            </IconButton>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto mt-6 flex max-w-container px-4 sm:px-6 lg:px-10">
         <GhostCta href={RESERVE_HREF}>Reserveren</GhostCta>
       </div>
     </section>

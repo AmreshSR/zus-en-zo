@@ -46,11 +46,12 @@ export function SiteNav() {
           : "border-b border-transparent")
       }
     >
-      <div className="mx-auto flex h-16 max-w-container px-4 sm:px-6 lg:px-10">
+      <div className="mx-auto flex h-16 max-w-container items-center px-4 sm:px-6 lg:px-10">
         <Link
           href="#top"
           aria-label="Zus & Zo, naar boven"
           onClick={() => setOpen(false)}
+          className="shrink-0"
         >
           <Image
             src="/logo.png"
@@ -58,11 +59,14 @@ export function SiteNav() {
             width={456}
             height={194}
             priority
-            className="h-9 w-auto"
+            className="h-10 w-auto"
           />
         </Link>
 
-        <nav aria-label="Hoofdnavigatie" className="hidden items-center gap-7 lg:flex">
+        <nav
+          aria-label="Hoofdnavigatie"
+          className="hidden items-center gap-7 lg:flex lg:justify-center lg:flex-1"
+        >
           {NAV_LINKS.map((l) => (
             <Link
               key={l.href}
@@ -74,7 +78,7 @@ export function SiteNav() {
           ))}
         </nav>
 
-        <div className="hidden lg:block">
+        <div className="ml-auto hidden lg:block">
           <PrimaryCta href={RESERVE_HREF} className="h-10 px-5 text-[0.9rem]">
             Reserveren
           </PrimaryCta>
@@ -83,7 +87,7 @@ export function SiteNav() {
         <IconButton
           label={open ? "Menu sluiten" : "Menu openen"}
           onClick={() => setOpen((v) => !v)}
-          className="h-10 w-10 lg:hidden"
+          className="ml-auto h-10 w-10 lg:hidden"
         >
           {/* Both icons stay mounted; toggling visibility avoids the icon
               remounting on every open/close. */}

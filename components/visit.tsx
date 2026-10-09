@@ -1,6 +1,6 @@
 import { MapPin, Clock, Phone } from "@phosphor-icons/react/dist/ssr";
 import { CONTACT, RESERVATION_MAILTO } from "@/lib/site";
-import { Eyebrow, PrimaryCta } from "./ui";
+import { PrimaryCta, SectionHead } from "./ui";
 import { Reveal } from "./reveal";
 
 const INFO = [
@@ -32,14 +32,12 @@ const OPTIONS = [
 
 export function Visit() {
   return (
-    <section id="contact" className="scroll-mt-20 py-16 lg:py-24">
+    <section id="contact" className="scroll-mt-20 bg-aqua py-16 lg:py-24">
       <div className="mx-auto max-w-container px-4 sm:px-6 lg:px-10">
-        <Reveal className="max-w-[36ch]">
-          <Eyebrow>Contact</Eyebrow>
-          <h2 className="mt-4 font-display text-3xl leading-tight tracking-tight text-ink sm:text-4xl lg:text-[2.9rem]">
-            Kom langs, of plan vooruit.
-          </h2>
-        </Reveal>
+        <SectionHead
+          kicker="Contact"
+          title="Kom langs, of plan vooruit."
+        />
 
         <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-3">
           {INFO.map((item) => (

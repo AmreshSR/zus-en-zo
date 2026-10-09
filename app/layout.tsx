@@ -7,9 +7,7 @@ import "./globals.css";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  // 700 was loaded but never used — every display heading renders at 600
-  // (.font-display). Add a weight back only when it actually appears.
-  weight: ["500", "600"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 

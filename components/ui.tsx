@@ -93,3 +93,56 @@ export function Eyebrow({ children }: { children: ReactNode }) {
     </span>
   );
 }
+
+import { Reveal } from "./reveal";
+
+/*
+ * Consistent section header: orange kicker + big display title on the left,
+ * short intro paragraph on the right (desktop). Gives every section the same
+ * recognisable opening beat so the page reads as distinct chapters.
+ */
+export function SectionHead({
+  kicker,
+  title,
+  intro,
+  className = "",
+  onDark = false,
+}: {
+  kicker: string;
+  title: ReactNode;
+  intro?: string;
+  className?: string;
+  onDark?: boolean;
+}) {
+  return (
+    <Reveal
+      className={`grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-12 ${className}`}
+    >
+      <div className="lg:col-span-7">
+        <span
+          className={`text-[0.74rem] font-medium uppercase tracking-[0.22em] ${
+            onDark ? "text-orange-ink/80" : "text-orange"
+          }`}
+        >
+          {kicker}
+        </span>
+        <h2
+          className={`mt-4 max-w-[16ch] text-balance font-display text-[2.2rem] leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.7rem] ${
+            onDark ? "text-orange-ink" : "text-ink"
+          }`}
+        >
+          {title}
+        </h2>
+      </div>
+      {intro && (
+        <p
+          className={`max-w-[44ch] self-end text-[1rem] leading-relaxed lg:col-span-4 lg:col-start-9 lg:text-[1.05rem] ${
+            onDark ? "text-orange-ink/90" : "text-ink-soft"
+          }`}
+        >
+          {intro}
+        </p>
+      )}
+    </Reveal>
+  );
+}

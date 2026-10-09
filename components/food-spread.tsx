@@ -3,6 +3,7 @@ import { Gallery } from "./gallery";
 import { PrimaryCta } from "./ui";
 import { Reveal } from "./reveal";
 import { Wave } from "./wave";
+import { Parallax } from "./parallax";
 
 const DISHES = [
   { name: "Ontbijt", note: "Vers brood, fruit en sterke koffie, vanaf 09:00 in de tuin." },
@@ -18,34 +19,32 @@ const DISHES = [
  */
 export function FoodSpread() {
   return (
-    <>
-      <div className="text-orange" aria-hidden="true">
-        <Wave className="-mb-px" />
-      </div>
-
-      <section id="menu" className="scroll-mt-20 bg-orange text-orange-ink">
+    <section id="menu" className="scroll-mt-20 bg-orange text-orange-ink">
         <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center lg:gap-8">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
             <Reveal
               as="figure"
-              className="relative order-1 aspect-[16/11] w-full overflow-hidden rounded-lg lg:order-2 lg:col-span-7 lg:aspect-[16/12]"
+              className="relative order-2 aspect-[16/11] w-full overflow-hidden rounded-lg lg:order-2 lg:col-span-7 lg:aspect-auto lg:h-full lg:min-h-[26rem]"
             >
-              <Gallery
-                images={IMAGES.foodSet}
-                sizes="(max-width: 1024px) 100vw, 58vw"
-                interval={6500}
-              />
+              <Parallax className="absolute inset-0" amount={20}>
+                <Gallery
+                  images={IMAGES.foodSet}
+                  sizes="(max-width: 1024px) 100vw, 58vw"
+                  interval={6500}
+                />
+              </Parallax>
             </Reveal>
 
-            <Reveal className="order-2 lg:order-1 lg:col-span-5">
-              <h2 className="font-display text-4xl leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]">
-                Bestel te veel.{" "}
-                <span className="em-italic text-orange-ink/75">Deel alles.</span>
+            <Reveal className="order-1 lg:order-1 lg:col-span-5">
+              <span className="text-[0.74rem] font-medium uppercase tracking-[0.22em] text-orange-ink/80">
+                02 — Grand café
+              </span>
+              <h2 className="mt-4 font-display text-[2.4rem] leading-[1.06] tracking-tight sm:text-5xl lg:text-[3.8rem]">
+                Surinaams, Europees en Caribisch door elkaar.
               </h2>
               <p className="mt-6 max-w-[46ch] text-[1.05rem] leading-relaxed text-orange-ink">
-                In het grand café met de grote tuin serveren we van 09:00 tot
-                21:00 een mix van de Surinaamse, Europese en Caribische keuken.
-                Kom ontbijten, lunchen, dineren of gewoon chillen.
+                Elke dag open van 09:00 tot 21:00, met een hele grote tuin.
+                Ontbijten, lunchen, dineren of gewoon chillen. Vega en vegan ook.
               </p>
 
               <ul className="mt-10 divide-y divide-orange-ink/20 border-y border-orange-ink/20">
@@ -73,10 +72,5 @@ export function FoodSpread() {
           </div>
         </div>
       </section>
-
-      <div className="text-orange" aria-hidden="true">
-        <Wave flip className="-mt-px" />
-      </div>
-    </>
   );
 }
